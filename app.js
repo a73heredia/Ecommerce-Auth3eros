@@ -1,6 +1,7 @@
 import express, { urlencoded } from 'express';
 import expressSession from 'express-session';
 import passport from 'passport';
+import cookieParser from 'cookie-parser'
 import MongoStore from 'connect-mongo';
 import routerProducts from './routers/indexProducts.js';
 import routerCarts from './routers/indexCarts.js';
@@ -29,7 +30,8 @@ hbs.registerHelper('isDisabled', function (value, opts) {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
   app.use('/static', express.static(path.join(__dirname, 'public')))
-  
+  app.use(cookieParser())
+
   app.set('view engine', 'hbs')
   app.set('views', path.join(__dirname, 'views'))
 
@@ -57,7 +59,7 @@ hbs.registerHelper('isDisabled', function (value, opts) {
  //app.use('/', routerSessions);
 
  app.use((err, req, res, next) => {
-  console.log(err)
+  /* console.log(err) */
   res 
     .status(err.statusCode || 500)
     .json({success: false, message: err.message})

@@ -12,10 +12,9 @@ class Utils {
     static tokenGenerator = (user) => {
         const payload = {
             id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            first_name: user.first_name,
+            last_name: user.last_name,
             email: user.email,
-            dni: user.dni,
             role: user.role
         }
 
@@ -45,26 +44,32 @@ class Utils {
         return bcrypt.compareSync(password, user.password)
     }
 
-    static authMiddleware = (roles) => (req, res, next) => {
-        passport.authenticate('jwt', function(error, user, info) {
-            if(error){
-                return next(error)
-            }
-            if(!user){
-                return next(new Exception('Unauthorized', 401))
-            }
-            if(!roles.includes(user.role)){
-                return next(new Exception('Forbidden', 403))
-            }
-
-            if(user.role === 'student' && req.params.id !== user.id){
-                return next(new Exception('Forbidden', 403))
-            }
-            req.user = user
-            next()
-        })(req,res,next)
-    }
+    static authJWTMiddleware = (roles) => (req, res, next) => {
+        passport.authenticate('jwt', function (error, user, info) {  
+            console.log(user);
+          if (error) {
+            return next(error)
+          }
+          if (!user) { // Autenticación
+            return next(new Exception('Unauthorized' , 401))
+          }
+          if (!roles.includes(user.role)) { // Autorización
+            return next(new Exception('Forbidden' , 403))
+          }
+          if (user.role === 'usuario' && req.params.id && req.params.id !== user.id) {
+            return next(new Exception('Forbidden' , 403))
+          }
+          req.user = user
+          next()
+        })(req, res, next)
+      }
     
+      static   authorizationMiddleware = (role) => (req, res, next) => {
+        if(req.user.role !== role){
+            return res.status(403).json({success: false, message:'Unauthorized' })
+        }
+        next()
+    }
 }
 
 
