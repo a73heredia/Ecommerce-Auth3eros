@@ -1,13 +1,14 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GithubStrategy } from 'passport-github2';
+import { Strategy as JWTStrategy, ExtractJwt } from 'passport-jwt'
 import dotenv from 'dotenv';
 import UserModel from '../models/user.js';
 import { createHash, validatePassword } from '../utils/hashFunctions.js';
 
 dotenv.config();
 
-const initPassport = () => {
+/* const initPassport = () => {
     const options = {
         usernameField: 'email',
         passReqToCallback: true
@@ -76,7 +77,31 @@ const initPassport = () => {
         clientID: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         callbackURL: process.env.CALLBACK_URL
-    };
+    }; */
+
+    const githubOptions = {
+      clientID: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      callbackURL: process.env.CALLBACK_URL
+  };
+
+    const cookieExtractor = (req) => {
+      let token = null
+  
+      if(req && req.cookies){
+          token = req.cookies.token
+      }
+      return token
+  }
+  
+  export const initPassport = () => {
+      passport.use('jwt', new JWTStrategy({
+          jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+          secretOrKey: process.env.JWT_SECRET
+      },(payload, done) => {
+          return done(null, payload)
+      }))
+  }
 
     passport.use(new GithubStrategy(githubOptions, async(accessToken, refreshToken, profile, done) => {
         try {
@@ -106,6 +131,6 @@ const initPassport = () => {
         done(null, user)
       })
 
-}
+
 
 export default initPassport;

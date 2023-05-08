@@ -5,6 +5,7 @@ import MongoStore from 'connect-mongo';
 import routerProducts from './routers/indexProducts.js';
 import routerCarts from './routers/indexCarts.js';
 import routerSessions from './routers/indexSessions.js';
+import apiRouter from './routers/api/index.js'
 import hbs from 'hbs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -32,25 +33,34 @@ hbs.registerHelper('isDisabled', function (value, opts) {
   app.set('view engine', 'hbs')
   app.set('views', path.join(__dirname, 'views'))
 
-  app.use(expressSession({
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI,
-        mongoOptions: {},
-        ttl: 20000
-    }),
-    secret: process.env.COOKIE_SECRET,
-    resave: false,
-    saveUninitialized: false
-}));
+//   app.use(expressSession({
+//     store: MongoStore.create({
+//         mongoUrl: process.env.MONGO_URI,
+//         mongoOptions: {},
+//         ttl: 20000
+//     }),
+//     secret: process.env.COOKIE_SECRET,
+//     resave: false,
+//     saveUninitialized: false
+// }));
 
  initPassport()
+ app.use(passport.initialize())
 
- app.use(passport.initialize());
- app.use(passport.session());
+//  app.use(passport.initialize());
+//  app.use(passport.session());
 
 
  app.use('/', routerProducts);
  app.use('/', routerCarts);
- app.use('/', routerSessions);
+ app.use('/api', apiRouter)
+ //app.use('/', routerSessions);
+
+ app.use((err, req, res, next) => {
+  console.log(err)
+  res 
+    .status(err.statusCode || 500)
+    .json({success: false, message: err.message})
+}) 
 
  export default app;
